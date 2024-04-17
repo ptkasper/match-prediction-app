@@ -6,8 +6,10 @@
 
 {% block fixture_list %}
     <div =id"fixture-list">
-        {% for fixture, predictions in fixtures_and_predictions %}
-            <div class="prediction-container" x-data="{editing: false}">
+        {% for fixtures, predictions in fixtures_and_predictions %}
+
+        {% block fixture-container %}
+            <div class="prediction-container" x-data="{editing: false, submittable: false}">
                 
                 {{ fixture.home_team }} 
                 
@@ -15,21 +17,39 @@
                     {% include 'partials/prediction-form.html' %}
                 </span>
                 {% if prediction %}
-                    <span>
+                    <span x-show="!editing">
                         {{ prediction.home_goals }} - {{ prediction.away_goals }}
                     </span> 
 
                 {% else %}
-                    vs.
+                <span x-show="!editing"> vs.</span>
                 {% endif %}
                 
                 {{ fixture.away_team }}
 
                 <span style="margin-left: 10px;">
-                    <button @click="editing=true">Edit</button>
+                    <button @click="editing=true" x-show="!editing">Edit</button>
+                    <button @click="editing=false" x-show="editing">Cancel</button>
+
+                    <span x-show="submittable">
+                        <button id="predict-fixture-{{ fixture.pk }}">Save</button>
+                    </span>
+
+                    {% if prediction %}
+                        <button 
+                            @click="editing=false"
+                            hx-post="{% url 'delete-prediction' prediction.pk %}"
+                            hx-target="closest .prediction-container"
+                            hx-swap="outerHTML"
+                        >
+                            Delete
+                        </button>
+
+                    {% endif %}
                 </span>
                 <hr/>
             </div>
+        {% endblock %}
         {% endfor %}
     </div>
 {% endblock %}
